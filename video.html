@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta tags for sharing -->
+    <meta property="og:title" content="Loading...">
+    <meta property="og:description" content="Loading video details...">
+    <meta property="og:image" content="">
+    <meta property="og:type" content="video.other">
+    
+    <title>Loading... - xxxbdpro.xyz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --dark-color: #141414;
+            --light-dark-color: #222;
+            --gray-color: #808080;
+            --white-color: #fff;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: var(--dark-color); color: var(--white-color); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        /* Navigation */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; background-color:#141414; }
+        .navbar .logo { font-size: 24px; font-weight: bold; color: var(--primary-color); text-decoration: none; }
+
+        .video-layout {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+        }
+        @media (max-width: 992px) {
+            .video-layout { flex-direction: column; }
+        }
+
+        .main-content {
+            flex: 3;
+        }
+        .sidebar {
+            flex: 1;
+        }
+
+        /* Custom Video Player */
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #000;
+            overflow: hidden;
+        }
+        .video-player-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .video-player-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+            aspect-ratio: auto;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            z-index: 20;
+        }
+        .video-overlay.playing {
+            display: none;
+        }
+        .play-button-overlay {
+            font-size: 80px;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 15px rgba(0,0,0,0.7);
+        }
+
+        .website-name-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--white-color);
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 21;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 21;
+        }
+        .video-player-container:hover .controls {
+            opacity: 1;
+        }
+        .controls.visible {
+            opacity: 1;
+        }
+        
+        .controls button {
+            background: none;
+            border: none;
+            color: var(--white-color);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .progress-bar-container {
+            flex-grow: 1;
+            height: 8px;
+            background-color: rgba(255,255,255,0.3);
+            cursor: pointer;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: var(--primary-color);
+            position: relative;
+        }
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -4px;
+            width: 16px;
+            height: 16px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+        }
+
+        .time-display { font-size: 14px; }
+        .volume-container { display: flex; align-items: center; }
+        .volume-slider { width: 80px; }
+
+        /* Video Info */
+        .video-info { padding: 20px 0; }
+        .video-title { font-size: 24px; margin-bottom: 15px; }
+        
+        .video-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; color: var(--gray-color); }
+        .meta-item { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .meta-item i { color: var(--white-color); }
+        .meta-item .btn { background: none; border: none; color: var(--white-color); font-size: 20px; cursor: pointer; }
+        .meta-item .btn.active { color: var(--primary-color); }
+        .category-tag { background-color: var(--light-dark-color); padding: 5px 10px; border-radius: 5px; color: var(--white-color); text-decoration: none; }
+        .share-btn { cursor: pointer; }
+
+        /* Related Videos */
+        .related-videos h3 { margin-bottom: 20px; font-size: 20px; }
+        .related-video-card { display: flex; gap: 15px; margin-bottom: 15px; text-decoration: none; color: var(--white-color); }
+        .related-thumbnail { width: 160px; height: 90px; flex-shrink: 0; }
+        .related-thumbnail img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; }
+        .related-info .title { font-size: 14px; margin-bottom: 5px; }
+        .related-info .views { font-size: 12px; color: var(--gray-color); }
+
+        /* Footer */
+        .footer { background-color: var(--light-dark-color); padding: 40px 0; text-align: center; margin-top: 40px; }
+        .footer .logo { font-size: 28px; font-weight: bold; color: var(--primary-color); margin-bottom: 15px; }
+        .footer p { max-width: 600px; margin: 0 auto 20px; color: var(--gray-color); }
+        .social-icons a { color: var(--white-color); font-size: 20px; margin: 0 10px; text-decoration: none; }
+        .copyright { margin-top: 20px; font-size: 14px; color: var(--gray-color); }
+    </style>
+</head>
+<body>
+
+    <div class="container navbar-container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">xxxbdpro.xyz</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <div class="video-layout">
+            <div class="main-content">
+                <div class="video-player-container" id="videoPlayerContainer">
+                    <video id="videoPlayer" preload="metadata"></video>
+                    
+                    <div class="video-overlay" id="videoOverlay">
+                        <i class="fas fa-play play-button-overlay"></i>
+                    </div>
+
+                    <div class="website-name-overlay">xxxbdpro.xyz</div>
+
+                    <div class="controls" id="controls">
+                        <button id="playPauseBtn"><i class="fas fa-play"></i></button>
+                        <div class="volume-container">
+                            <button id="muteBtn"><i class="fas fa-volume-up"></i></button>
+                        </div>
+                        <div class="progress-bar-container" id="progressBarContainer">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <span class="time-display" id="timeDisplay">00:00 / 00:00</span>
+                        <button id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <div class="video-info">
+                    <h1 class="video-title" id="videoTitle"></h1>
+                    <div class="video-meta">
+                        <div class="meta-item">
+                            <button class="btn" id="likeBtn"><i class="fas fa-thumbs-up"></i></button>
+                            <span id="likeCount">0</span>
+                        </div>
+                        <div class="meta-item">
+                            <button class="btn" id="dislikeBtn"><i class="fas fa-thumbs-down"></i></button>
+                        </div>
+                         <div class="meta-item share-btn" id="shareBtn">
+                            <i class="fas fa-share"></i>
+                            <span id="shareCount">Share</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-eye"></i>
+                            <span id="viewCount">0</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span id="publishDate"></span>
+                        </div>
+                        <div class="meta-item">
+                           <a href="#" id="categoryTag" class="category-tag"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar">
+                <div class="related-videos">
+                    <h3>Related Videos</h3>
+                    <div id="relatedVideosContainer">
+                        <!-- Related videos will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <div class="logo">xxxbdpro.xyz</div>
+            <p>Your ultimate destination for high-quality video streaming. Explore a vast collection of videos across various categories.</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+            <p class="copyright">&copy; 2024 xxxbdpro.xyz. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2JqxpBdOSlrUA2iXDPIE45YRNj8bMgYM",
+            authDomain: "chat-my-talk-my-4f7cd.firebaseapp.com",
+            projectId: "chat-my-talk-my-4f7cd",
+            storageBucket: "chat-my-talk-my-4f7cd.firebasestorage.app",
+            messagingSenderId: "455735834971",
+            appId: "1:455735834971:web:9f3b5740987fe8c6c4027e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // DOM Elements
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoPlayerContainer = document.getElementById('videoPlayerContainer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const controls = document.getElementById('controls');
+        const likeBtn = document.getElementById('likeBtn');
+        const dislikeBtn = document.getElementById('dislikeBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        
+        let randomAdLink = '#';
+
+        // --- Video Player Logic ---
+        let isPlaying = false;
+        
+        async function fetchRandomAdLink() {
+            try {
+                const settingsRef = doc(db, 'site_settings', 'ads');
+                const docSnap = await getDoc(settingsRef);
+                if (docSnap.exists()) {
+                    randomAdLink = docSnap.data().randomLink || '#';
+                }
+            } catch (error) {
+                console.error("Error fetching ad link:", error);
+            }
+        }
+
+        videoOverlay.addEventListener('click', () => {
+            window.open(randomAdLink, '_blank');
+            videoPlayer.play();
+        });
+
+        playPauseBtn.addEventListener('click', togglePlay);
+        videoPlayer.addEventListener('click', togglePlay);
+        videoPlayer.addEventListener('play', () => {
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            videoOverlay.classList.add('playing');
+            isPlaying = true;
+        });
+        videoPlayer.addEventListener('pause', () => {
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            isPlaying = false;
+        });
+
+        function togglePlay() {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        }
+
+        videoPlayer.addEventListener('timeupdate', updateProgressBar);
+        progressBarContainer.addEventListener('click', setProgress);
+        
+        function updateProgressBar() {
+            const percentage = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+            progressBar.style.width = `${percentage}%`;
+            timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration || 0)}`;
+        }
+
+        function setProgress(e) {
+            const width = this.clientWidth;
+            const clickX = e.offsetX;
+            const duration = videoPlayer.duration;
+            videoPlayer.currentTime = (clickX / width) * duration;
+        }
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                videoPlayerContainer.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            videoPlayerContainer.classList.toggle('fullscreen', !!document.fullscreenElement);
+        });
+
+        // Show controls on touch
+        let controlsTimeout;
+        videoPlayerContainer.addEventListener('touchstart', () => {
+            controls.classList.add('visible');
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                controls.classList.remove('visible');
+            }, 3000);
+        });
+        
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+
+        // --- Page Data Logic ---
+        async function loadVideoPage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('id');
+            if (!postId) {
+                document.body.innerHTML = '<h1>Video not found.</h1>';
+                return;
+            }
+
+            try {
+                const postRef = doc(db, 'posts', postId);
+                const postSnap = await getDoc(postRef);
+
+                if (postSnap.exists()) {
+                    const post = postSnap.data();
+                    
+                    // Update meta tags for sharing
+                    document.title = `${post.title} - xxxbdpro.xyz`;
+                    document.querySelector('meta[property="og:title"]').setAttribute('content', post.title);
+                    document.querySelector('meta[property="og:description"]').setAttribute('content', 'Watch this video on xxxbdpro.xyz');
+                    document.querySelector('meta[property="og:image"]').setAttribute('content', post.thumbnailUrl);
+
+                    // Populate page
+                    videoPlayer.src = post.videoUrl;
+                    videoPlayer.poster = post.thumbnailUrl;
+                    videoOverlay.style.backgroundImage = `url('${post.thumbnailUrl}')`;
+                    document.getElementById('videoTitle').textContent = post.title;
+                    document.getElementById('viewCount').textContent = post.views || 0;
+                    document.getElementById('likeCount').textContent = post.likes || 0;
+                    document.getElementById('publishDate').textContent = post.publishDate.toDate().toLocaleDateString('en-GB');
+                    
+                    const categoryRef = doc(db, 'categories', post.categoryId);
+                    const categorySnap = await getDoc(categoryRef);
+                    if(categorySnap.exists()) {
+                        const categoryTag = document.getElementById('categoryTag');
+                        categoryTag.textContent = categorySnap.data().name;
+                        categoryTag.href = `index.html?category=${post.categoryId}`;
+                    }
+
+                    // Increment view count
+                    await updateDoc(postRef, { views: increment(1) });
+                    
+                    // Load related videos
+                    loadRelatedVideos(post.categoryId, postId);
+                    
+                    // Share button logic
+                    shareBtn.onclick = async () => {
+                        if (navigator.share) {
+                           await navigator.share({
+                                title: post.title,
+                                text: `Check out this video on xxxbdpro.xyz!`,
+                                url: window.location.href,
+                            });
+                            await updateDoc(postRef, { shares: increment(1) });
+                        } else {
+                            navigator.clipboard.writeText(window.location.href);
+                            alert('Link copied to clipboard!');
+                        }
+                    };
+                    
+                    // Like/Dislike Logic
+                    onAuthStateChanged(auth, user => {
+                        if(user) {
+                           // Future: Check if user already liked
+                        }
+                    });
+
+                    likeBtn.onclick = async () => {
+                         await updateDoc(postRef, { likes: increment(1) });
+                         document.getElementById('likeCount').textContent = parseInt(document.getElementById('likeCount').textContent) + 1;
+                         likeBtn.classList.add('active');
+                         likeBtn.disabled = true;
+                         dislikeBtn.disabled = true;
+                    };
+                    
+                    dislikeBtn.onclick = async () => {
+                         // dislike logic if needed
+                    };
+                    
+                } else {
+                    document.body.innerHTML = '<h1>Video not found.</h1>';
+                }
+            } catch (error) {
+                console.error("Error loading video:", error);
+                document.body.innerHTML = '<h1>Error loading video.</h1>';
+            }
+        }
+        
+        async function loadRelatedVideos(categoryId, currentPostId) {
+            const container = document.getElementById('relatedVideosContainer');
+            container.innerHTML = '';
+            
+            try {
+                const q = query(
+                    collection(db, 'posts'), 
+                    where('categoryId', '==', categoryId),
+                    where('__name__', '!=', currentPostId),
+                    limit(20)
+                );
+                const querySnapshot = await getDocs(q);
+                
+                querySnapshot.forEach(doc => {
+                    const post = doc.data();
+                    const card = document.createElement('a');
+                    card.href = `video.html?id=${doc.id}`;
+                    card.className = 'related-video-card';
+                    card.innerHTML = `
+                        <div class="related-thumbnail">
+                            <img src="${post.thumbnailUrl}" alt="${post.title}" loading="lazy">
+                        </div>
+                        <div class="related-info">
+                            <div class="title">${post.title}</div>
+                            <div class="views">${post.views || 0} views</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error fetching related videos:", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchRandomAdLink();
+            loadVideoPage();
+        });
+
+    </script>
+</body>
+</html>
